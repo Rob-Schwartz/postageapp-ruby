@@ -30,10 +30,10 @@ class PostageApp::Mailer < ActionMailer::Base
     self.delivery_method = :postage
   end
   
-  adv_attr_accessor :postageapp_uid
-  adv_attr_accessor :postageapp_api_key
-  adv_attr_accessor :postageapp_template
-  adv_attr_accessor :postageapp_variables
+  self.adv_attr_accessor :postageapp_uid
+  self.adv_attr_accessor :postageapp_api_key
+  self.adv_attr_accessor :postageapp_template
+  self.adv_attr_accessor :postageapp_variables
   
   def perform_delivery_postage(mail)
     mail.send
@@ -137,4 +137,28 @@ class PostageApp::Mailer < ActionMailer::Base
   rescue ActionView::MissingTemplate
     # do nothing
   end
+  
+  def adv_attr_accessor(*names)
+    names.each do |name|
+      ivar = "@#{name}"
+  
+      define_method("#{name}=") do |value|
+        instance_variable_set(ivar, value)
+      end
+  
+      define_method(name) do |*parameters|
+        raise ArgumentError, "expected 0 or 1 parameters" unless parameters.length <= 1
+        if parameters.empty?
+          if instance_variable_names.include?(ivar)
+            instance_variable_get(ivar)
+          end
+        else
+          instance_variable_set(ivar, parameters.first)
+        end
+      end
+    end
+  end
+
+
+  
 end
